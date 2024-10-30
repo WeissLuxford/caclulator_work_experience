@@ -1,21 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Калькулятор трудового стажа</title>
 </head>
 
 <style>
     body {
+        position: relative;
         font-family: Arial, sans-serif;
         max-width: 600px;
         width: 100%;
         margin: 20px auto;
-        padding: 25px 30px;
+        padding: 75px 30px 25px;
         border: 2px solid green;
         border-radius: 5px;
-        background-color: #f2fffe;
     }
     .row {
         margin-bottom: 10px;
@@ -66,70 +66,103 @@
         border-radius: 5px;
         background: orange;
         margin: 15px 0 10px;
-        font-size: 1.2em;
+         font-size: 1.2em;
     }
+
+    .remove-btn,
+    .add-btn{
+        position: absolute;
+        top: 0;
+        max-width: 52px;
+    }
+
+    .add-btn{
+        left: 20px;
+        background-color: #089226;
+        color: white;
+    }
+        
+    .remove-btn {
+            right: 20px;
+            background-color: #ff4d4d;
+            color: white;
+            cursor: pointer;
+        }
+
+
+
 </style>
+
 <body>
-
-
-<div class="row">
-    <label>Дата приёма на работу: <input type="date" id="startDate1"></label>
-    <label>Дата увольнения: <input type="date" id="endDate1"></label>
-</div>
-<div class="row">
-    <label>Дата приёма на работу: <input type="date" id="startDate2"></label>
-    <label>Дата увольнения: <input type="date" id="endDate2"></label>
-</div>
-<div class="row">
-    <label>Дата приёма на работу: <input type="date" id="startDate3"></label>
-    <label>Дата увольнения: <input type="date" id="endDate3"></label>
+<div id="dateRows">
+    <div class="row">
+        <label>Дата приёма на работу: <input type="date" class="startDate"></label>
+        <label>Дата увольнения: <input type="date" class="endDate"></label>
+        <button class=" button remove-btn" onclick="removeRow(this)">x</button>
+    </div>
 </div>
 
+<button onclick="addRow()" class="button add-btn">+</button>
 <button onclick="calculateExperience()" class="button">Рассчитать</button>
-<br><hr>
+
 <div class="result">
     <p>Суммарный трудовой стаж: <span id="result">0 дней, 0 месяцев, 0 лет</span></p>
 </div>
 
 <script>
+function addRow() {
+    const rowContainer = document.getElementById("dateRows");
+    const newRow = document.createElement("div");
+    newRow.className = "row";
+    newRow.innerHTML = `
+        <label>Дата приёма на работу: <input type="date" class="startDate"></label>
+        <label>Дата увольнения: <input type="date" class="endDate"></label>
+        <button class="remove-btn button" onclick="removeRow(this)">x</button>
+    `;
+    rowContainer.appendChild(newRow);
+}
+
+function removeRow(button) {
+    const row = button.parentElement;
+    row.remove();
+}
+
 function calculateExperience() {
-    const periods = [
-        { start: document.getElementById("startDate1").value, end: document.getElementById("endDate1").value },
-        { start: document.getElementById("startDate2").value, end: document.getElementById("endDate2").value },
-        { start: document.getElementById("startDate3").value, end: document.getElementById("endDate3").value }
-    ];
+    const startDates = document.querySelectorAll(".startDate");
+    const endDates = document.querySelectorAll(".endDate");
 
     let totalDays = 0, totalMonths = 0, totalYears = 0;
 
-    for (let period of periods) {
-        if (period.start && period.end) {
-            const startDate = new Date(period.start);
-            const endDate = new Date(period.end);
+    for (let i = 0; i < startDates.length; i++) {
+        const startDateValue = startDates[i].value;
+        const endDateValue = endDates[i].value;
+
+        if (startDateValue && endDateValue) {
+            const startDate = new Date(startDateValue);
+            const endDate = new Date(endDateValue);
 
             if (endDate >= startDate) {
-                const years = endDate.getFullYear() - startDate.getFullYear();
-                const months = endDate.getMonth() - startDate.getMonth();
-                const days = endDate.getDate() - startDate.getDate();
+                let years = endDate.getFullYear() - startDate.getFullYear();
+                let months = endDate.getMonth() - startDate.getMonth();
+                let days = endDate.getDate() - startDate.getDate();
 
-                let computedYears = years, computedMonths = months, computedDays = days;
-
-                if (computedDays < 0) {
-                    computedMonths -= 1;
-                    computedDays += new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0).getDate();
+                if (days < 0) {
+                    months -= 1;
+                    days += new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0).getDate();
                 }
-                if (computedMonths < 0) {
-                    computedYears -= 1;
-                    computedMonths += 12;
+                if (months < 0) {
+                    years -= 1;
+                    months += 12;
                 }
 
-                totalYears += computedYears;
-                totalMonths += computedMonths;
-                totalDays += computedDays;
+                totalYears += years;
+                totalMonths += months;
+                totalDays += days;
             }
         }
     }
 
-    // Приводим результат к корректному виду (например, 13 месяцев -> 1 год 1 месяц)
+    // Приводим результат к корректному виду
     totalMonths += Math.floor(totalDays / 30);
     totalDays %= 30;
     totalYears += Math.floor(totalMonths / 12);
